@@ -247,3 +247,43 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Two-tier on-device model picker: default remains the smaller Everyday engine. */
+.mode-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 15px 22px;
+  border-bottom: 1px solid var(--stroke);
+  background: var(--surface);
+}
+.mode-option {
+  width: 100%; min-width: 0; min-height: 65px;
+  padding: 12px 14px; display: flex; align-items: center; gap: 12px;
+  text-align: left; border: 1px solid var(--stroke); border-radius: 12px;
+  background: var(--surface-alt); color: var(--text); transition: background .15s, border-color .15s;
+}
+.mode-option[aria-pressed="true"] {
+  background: var(--purple-soft); border-color: var(--purple);
+  box-shadow: 0 0 0 1px var(--purple) inset;
+}
+.mode-option:hover:not(:disabled) { border-color: var(--purple); }
+.mode-option:disabled { cursor: default; opacity: .68; }
+.mode-symbol { font-size: 20px; color: var(--purple); width: 28px; text-align: center; flex-shrink: 0; }
+.mode-option-copy { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.mode-option-copy strong { font: 800 12px/1.5 var(--display); }
+.mode-option-copy small { font-size: 10px; line-height: 1.5; color: var(--muted); }
+.mode-size {
+  margin-left: auto; font-size: 11px; color: var(--purple);
+  font-weight: 800; white-space: nowrap; padding-left: 5px;
+}
+@media (max-width: 540px) {
+  .mode-picker { padding: 12px; gap: 8px; }
+  .mode-option { padding: 12px 10px; min-height: 69px; gap: 5px; flex-wrap: wrap; align-content: center; }
+  .mode-symbol { width: 20px; font-size: 17px; }
+  .mode-option-copy { flex: 1 1 calc(100% - 29px); }
+  .mode-option-copy strong { font-size: 12px; }
+  .mode-option-copy small { font-size: 9px; }
+  .mode-size { margin-left: 25px; font-size: 10px; }
+}

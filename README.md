@@ -1,111 +1,107 @@
 # TranslateTheThings
 
-**Thoughtful translations, made privately in your browser.**
+**High-quality translation in your browser — without a translation backend.**
 
-TranslateTheThings is a static, mobile-responsive translation app using Google's **TranslateGemma 4B** model with **Transformers.js + WebGPU**. The model runs on the visitor's own device; there is no translation API, backend compute, account or server-side inference.
+A polished, mobile-responsive, manually deployed static translator with two opt-in, local-only translation engines:
 
-> **Status:** first working implementation / hardware validation needed. The frontend and integration have been built, but actual 4B inference has not been benchmarked on your target devices yet. On phones and GPUs with limited memory, the model may fail to load; the app reports that rather than inventing results.
+| Mode | Model | Approx. first model download | Inference | Use it for |
+| --- | --- | --- | --- | --- |
+| **Everyday (default)** | [NLLB-200 distilled 600M](https://huggingface.co/Xenova/nllb-200-distilled-600M), quantized | **~0.9 GB** | CPU / WebAssembly in a Web Worker | First-run practicality, mobile trials, European-language translation |
+| **Premium (optional)** | [TranslateGemma 4B ONNX](https://huggingface.co/onnx-community/translategemma-text-4b-it-ONNX), q4 | **~3.1 GB** | WebGPU | More demanding wording and quality comparisons on capable hardware |
+
+**Important:** Premium is not automatically better for *every* text or language direction, and Everyday is not guaranteed to achieve professional translation quality. The two engines have different strengths, and we still need benchmark results for Czech, Ukrainian and other priority European language pairs. The user explicitly chooses when to download either model; no hidden remote inference or silent change of engine occurs.
+
+## Why two models?
+
+The 4B premium engine is too large for many mobile devices, while NLLB has a stable, documented browser translation interface and language coverage. Its int8 ONNX weights occupy roughly 0.9 GB across encoder and decoder (plus tokenizer/runtime assets), rather than 3.1 GB for the premium model. On some phones, 0.9 GB is **still too large** for reliable use. Support depends on available RAM, browser and storage.
+
+We considered Tencent HY-MT1.5 1.8B because of its quality, but **its license explicitly excludes the EU and UK**. We deliberately did **not** integrate it into this Europe-focused product. The newer [Hy-MT2 1.8B](https://huggingface.co/tencent/Hy-MT2-1.8B) has an Apache-2.0 license and strong published results, but lacks a fully verified cross-browser Transformers.js integration at the moment. It is worth investigating after validating this release.
 
 ## Features
 
-- A polished two-pane desktop translator and a stacked, touch-friendly mobile layout
-- English, German, French, Spanish, Czech, Ukrainian, Polish, Dutch, Italian, Portuguese and many other model-supported languages
-- TranslateGemma's **official structured prompt** (correct source/target tags), with deterministic generation
-- Intentional model download: **about 3.1 GB** in q4 form, only after user confirmation
-- Model-load progress and actionable error states, without fake sample translations
-- Automatic splitting of long text into moderate-size segments; a 4,000-character input limit
-- Swap languages, clipboard copy/paste, clear, keyboard shortcut (**Ctrl/Cmd + Enter**) and example inputs
-- Responsive light and dark themes, local-only saved preferences
-- Best-effort offline app-shell support with a versioned service worker and a static build manifest
-- No analytics; input text and translations are not saved in URL, localStorage or a backend
+- **Everyday / Premium switcher** with independent model loading and size estimates; an already-loaded engine is retained when switching back
+- On-device translation with no account, analytics, remote translation API or server-side computation
+- English, German, French, Spanish, Czech, Ukrainian, Polish, Italian, Portuguese, Dutch, Romanian, Slovak, Hungarian and other European languages
+- Extended language list in Premium; Everyday exposes only languages with explicitly mapped NLLB language codes
+- Responsive desktop and mobile editor, light and dark themes, clipboard paste/copy, language swapping, sample translations and Ctrl/Cmd+Enter
+- Explicit translation trigger (no automatic 4B inference on every keystroke)
+- Long-input segmentation up to 4,000 characters; no invisible external translation service
+- Clear model download consent, progress, local caching when available and failure messages
+- CPU Everyday inference runs inside a **Web Worker**, keeping the editor responsive; Premium retains WebGPU generation
+- Basic offline application-shell support (model files may be evicted by browsers)
 
-## Local development
+## Run and build manually
 
-You need **Node.js 20+ only on the development machine**. It is **not** needed on the web server or on visitors' devices.
+Node.js **20+ is needed on the development/build machine only**. No Node, Python or backend is used by the production website.
 
 ~~~sh
 npm install
+npm test
 npm run dev
 ~~~
 
-Open the Vite URL printed in the terminal. No model is downloaded until you consent in the app.
-
-To run the self-contained, backend-free utility tests:
-
-~~~sh
-npm test
-~~~
-
-## Build and deploy manually
+For manual production deployment:
 
 ~~~sh
 npm run build
 ~~~
 
-This creates **dist/** with all frontend HTML/CSS/JavaScript, the app icon, manifest, service worker and generated precache list. The postbuild script only prepares static files; it does **not** upload anything.
+Upload the **contents of `dist/`** to a normal HTTPS static web host. Everything required for the application interface is produced in `dist/`; the large model files are loaded from Hugging Face's public static file hosting only when approved by the visitor. No GitHub Pages, GitHub Actions, CI/CD, serverless functions, inference API endpoints, production Node processes or runtime Python services are used.
 
-**Deploy by copying the contents of dist/** to any static web host (Nginx, Apache, object storage, shared hosting, static CDN, etc.). There are **no GitHub Actions, GitHub Pages configuration, CI/CD pipelines, Docker services, API servers or production Node processes**.
+Build configuration uses relative asset paths so a site can be deployed under a subdirectory. Use standard MIME types for JavaScript, JSON, WASM and static resources, and HTTPS for the service worker and WebGPU where supported. The postbuild script prepares a static precache manifest but does not deploy anything.
 
-The Vite base is relative, so the site can be deployed at a root domain or under a subdirectory. Use **HTTPS** (or localhost while developing), correct MIME types for JS/CSS/JSON, and ordinary static-file serving. No SPA rewrite rules are required; this application has one page.
+### Static model assets and privacy
 
-### Model hosting
+Downloaded model weights, tokenizers and runtime data are **static files**, not inference API calls. Translation input is processed locally in the current browser. Normal asset hosting logs (e.g. IP address or model file requests) can still be collected by the file host. There are no text-upload requests, telemetry, accounts or translation history in the app.
 
-By default, the app fetches **static model assets** from:
-[onnx-community/translategemma-text-4b-it-ONNX](https://huggingface.co/onnx-community/translategemma-text-4b-it-ONNX).
+If you want all network requests to use **your own static host** later, explicitly copy model assets and configure Transformers.js to use those static paths after checking redistributable terms. The multi-GB model weights are deliberately not checked into the Git repository.
 
-This is still **zero backend compute**: the files are downloaded to the browser and inference runs locally via WebGPU. The hosting provider can see normal asset-download metadata such as IP addresses, **not translation input**. The approximately **3.1 GB** model download is intentionally opt-in. The runtime may also load static WASM/runtime artifacts from upstream package locations as required.
+### Compatibility
 
-If you later want **every network request to use your own host**, add the model weights, runtime assets and appropriate Transformers.js configuration to your static deployment. Those large files are not checked into this Git repository. Verify Google's [Gemma terms](https://ai.google.dev/gemma/terms) and upstream ONNX redistribution terms before distributing copies of model weights.
+- **Everyday**: uses the NLLB browser ONNX translation pipeline with `device: 'wasm'` and `dtype: 'q8'`. This avoids any requirement for WebGPU, but still uses substantial storage and RAM; some mobile devices may struggle.
+- **Premium**: uses TranslateGemma 4B, WebGPU and substantially more memory. The app checks WebGPU before offering it.
+- **Offline**: the application shell is cached after initial use. Model reuse and full offline inference depend on browsers retaining model weights and supporting runtime assets; neither is guaranteed.
+- **UI**: mobile touch targets, accessible status messages, color-theme support and stacked translation panels.
 
-## Device compatibility
+## Licensing matters, even for a free website
 
-TranslateGemma 4B currently uses a quantized ONNX model and **WebGPU**. WebGPU availability, shader support and GPU memory differ by browser and device. Up-to-date Chrome/Edge desktop are the primary targets for the first validation. The **interface is responsive on Android and iOS**, but some mobile devices do not have enough GPU memory, WebGPU support or storage to translate with this 4B model. There is **no hidden cloud fallback** and the UI explains this clearly.
+- **NLLB-200 distilled 600M**: [CC BY-NC 4.0](https://huggingface.co/facebook/nllb-200-distilled-600M). Noncommercial use is restricted by the license terms; a *free* website does not automatically mean every possible use by European businesses is noncommercial. **Review the model license before production distribution or commercial/business deployment.**
+- **TranslateGemma**: [Google Gemma Terms](https://ai.google.dev/gemma/terms), a separate model usage agreement rather than an OSI-approved open-source software license.
 
-Do **not** assume all browsers can load the model just because they can display the site. No weaker model is silently substituted. A future small-model fallback should be quality benchmarked first.
+The website JavaScript is separate from the models' licensing terms. Model copyright notices should remain available to end users if you self-host their weights.
 
-### Offline behavior
+## Translation quality validation
 
-The service worker precaches the **application shell assets** on install. Transformers.js can cache downloaded models locally where browser storage permits, but storage is subject to eviction. Complete offline translation also depends on cached inference runtime resources and browser support; test it on your devices before promising offline operation. Initial model setup always requires network access unless you self-host and preprovision assets.
+Before promoting either mode as production quality, compare the same examples across both engines, especially:
 
-## UX and privacy decisions
+1. **Czech ↔ German**, **Czech ↔ English**, **Ukrainian ↔ Polish**, **Ukrainian ↔ English**;
+2. **German ↔ French**, **Spanish ↔ English**, **Italian ↔ German**;
+3. Business emails, product descriptions, contract-like language, negation, numbers/dates, domain terminology, HTML-looking text and idioms;
+4. Translation fidelity and omissions, not just fluency; measure cold/warm latency and memory on desktop and real Android/iOS devices.
 
-- **Explicit Translate button**, not every-keystroke inference: 4B inference is costly on mobile and would drain battery if triggered while typing.
-- **Explicit source language** instead of unverified automatic detection: TranslateGemma's official instruction format requires source and target language codes.
-- **No text in shareable URLs**, analytics, telemetry or permanent local history.
-- Clipboard paste is initiated by user interaction; denied clipboard permissions are handled gracefully.
-- If text or language selection changes during generation, out-of-date results are discarded. The current running GPU segment may still complete before cancellation is observed.
-- Long documents are split into independent chunks; paragraph-level context can be lost between chunks. For legal or contractual text, human review is essential.
+We should also benchmark [Hy-MT2 1.8B](https://huggingface.co/tencent/Hy-MT2-1.8B) as a potential future quality upgrade to the Everyday mode once its browser conversion is proven.
 
-## Repository layout
+## Project layout
 
 ~~~text
-index.html                    User interface structure
-src/main.js                   State, interactions and local model lifecycle
-src/styles.css                Responsive design system
-src/languages.js              Model-compatible language codes
-src/text.js                   Segmenting and size formatting
-src/translation.js            TranslateGemma / Transformers.js integration
-public/manifest.webmanifest   Installable PWA metadata
-public/sw.js                  Static shell cache
-scripts/postbuild.mjs         Generate cache manifest after manual build
-tests/text.test.mjs           Node built-in tests (no test framework dependency)
-vite.config.js                Relative assets for portable static hosting
+index.html                   Browser UI including the engine switcher
+src/main.js                  Translation UI / lifecycle / progress / local preferences
+src/languages.js             UI language options and filtering
+src/models.js                Model descriptions, size estimates and NLLB code mapping
+src/everyday.worker.js       NLLB q8 inference off the main thread
+src/everyday.js              Message-based worker adapter
+src/translation.js           Premium TranslateGemma 4B adapter
+src/text.js                  Text splitting and progress formatting
+src/styles.css               Responsive UI and light/dark appearance
+public/sw.js                 Versioned static application-shell caching
+scripts/postbuild.mjs        Manual-build precache manifest generator
+tests/*.test.mjs             Small built-in Node tests; no CI required
 ~~~
 
-## Attribution and reference implementation
+## Source references
 
-- [Google TranslateGemma 4B model card and prompt format](https://huggingface.co/google/translategemma-4b-it)
-- [ONNX WebGPU model](https://huggingface.co/onnx-community/translategemma-text-4b-it-ONNX)
-- [webml-community / TranslateGemma-WebGPU](https://github.com/webml-community/TranslateGemma-WebGPU) — reference for the compatible q4 WebGPU loading and structured translation request
-- [Transformers.js](https://huggingface.co/docs/transformers.js)
-- [Gemma terms](https://ai.google.dev/gemma/terms)
-
-The interface and state handling in this project are original; the model integration follows published usage examples.
-
-## Suggested next validation
-
-1. Load and translate English → German on a desktop with sufficient WebGPU memory.
-2. Test Czech → German, Ukrainian → Polish, French → Spanish and reverse directions.
-3. Test a high-end Android phone and an iPhone: download size, GPU memory, browser support and cold/warm latency.
-4. Review the quality of business emails, product descriptions and tricky terminology against human references.
-5. Decide whether a smaller, **benchmarked** mobile fallback is needed.
+- [NLLB ONNX / Transformers.js browser usage](https://huggingface.co/Xenova/nllb-200-distilled-600M)
+- [TranslateGemma browser example](https://github.com/webml-community/TranslateGemma-WebGPU)
+- [TranslateGemma ONNX model](https://huggingface.co/onnx-community/translategemma-text-4b-it-ONNX)
+- [Hy-MT2 1.8B](https://huggingface.co/tencent/Hy-MT2-1.8B)
+- [Hy-MT1.5 license — excludes EU, UK and South Korea](https://huggingface.co/tencent/HY-MT1.5-1.8B/blob/main/License.txt)

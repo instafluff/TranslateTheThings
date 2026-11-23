@@ -26,7 +26,7 @@ export const ADDITIONAL = [
 ];
 export const LANGUAGES = [...FEATURED, ...ADDITIONAL];
 export const SUPPORTED_CODES = new Set(LANGUAGES.map(([code]) => code));
-export function populateLanguages(select, selected) {
+export function populateLanguages(select, selected, isSupported = () => true) {
   const groups = [
     ['Popular in Europe', FEATURED],
     ['More languages', ADDITIONAL],
@@ -36,12 +36,13 @@ export function populateLanguages(select, selected) {
     const group = document.createElement('optgroup');
     group.label = label;
     for (const [code, name] of languages) {
+      if (!isSupported(code)) continue;
       const option = document.createElement('option');
       option.value = code;
       option.textContent = name;
       group.append(option);
     }
-    select.append(group);
+    if (group.children.length) select.append(group);
   }
   if (SUPPORTED_CODES.has(selected)) select.value = selected;
 }

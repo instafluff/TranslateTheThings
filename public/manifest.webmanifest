@@ -1,7 +1,7 @@
 {
   "name": "TranslateTheThings",
   "short_name": "Translate",
-  "description": "Private in-browser translation with TranslateGemma",
+  "description": "Private in-browser translation with everyday and premium local models",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -1,5 +1,6 @@
 import './styles.css';
 import { SUPPORTED_CODES, populateLanguages } from './languages.js';
+import { MODES, NLLB_CODES, supportedByMode } from './models.js';
 import { MAX_CHARACTERS, chunkText, formatBytes } from './text.js';
 
 const $ = (id) => document.getElementById(id);
@@ -11,7 +12,6 @@ const translateButton = $('translate-button');
 const translateLabel = $('translate-button-label');
 const modelButton = $('model-button');
 const modelDialog = $('model-dialog');
-const MAX_MODEL_BYTES = 3111894696;
 
 function readPreference(key, fallback) {
   try { return localStorage.getItem('ttt-' + key) || fallback; }
@@ -22,14 +22,17 @@ function savePreference(key, value) {
 }
 const preferredSource = readPreference('source', 'en');
 const preferredTarget = readPreference('target', 'de_DE');
-populateLanguages(sourceSelect, preferredSource);
-populateLanguages(targetSelect, preferredTarget);
+const initialMode = readPreference('mode', 'everyday') === 'premium' ? 'premium' : 'everyday';
+const initialSupport = (code) => supportedByMode(code, initialMode);
+populateLanguages(sourceSelect, preferredSource, initialSupport);
+populateLanguages(targetSelect, preferredTarget, initialSupport);
 if (!SUPPORTED_CODES.has(sourceSelect.value)) sourceSelect.value = 'en';
 if (!SUPPORTED_CODES.has(targetSelect.value)) targetSelect.value = 'de_DE';
 
 const state = {
   input: '',
   output: '',
+  mode: initialMode,
   source: sourceSelect.value,
   target: targetSelect.value,
   model: 'idle',
@@ -43,6 +46,14 @@ const state = {
 };
 let toastTimer;
 let elapsedStart = 0;
+// Keep completed downloads loaded when switching between models.
+const savedSessions = {
+  everyday: { model: 'idle', engine: null, downloaded: new Map() },
+  premium: { model: 'idle', engine: null, downloaded: new Map() },
+};
+function canRunEngine() {
+  return !MODES[state.mode].requiresWebGPU || state.gpu === 'available';
+}
 
 function showToast(message) {
   const node = $('toast');
@@ -79,25 +90,61 @@ function renderOutput() {
 function updateControls() {
   const hasText = Boolean(state.input.trim());
   const same = state.source === state.target;
-  translateButton.disabled = !hasText || same || state.translating || state.model === 'loading' || state.gpu !== 'available';
-  translateLabel.textContent = state.translating ? 'Translating…' : state.model === 'ready' ? 'Translate text' : 'Translate text';
+  const locked = state.translating || state.model === 'loading';
+  translateButton.disabled = !hasText || same || locked || !canRunEngine();
+  translateLabel.textContent = state.translating ? 'Translating…' : 'Translate text';
   translateButton.classList.toggle('is-busy', state.translating);
   $('char-count').textContent = state.input.length.toLocaleString() + ' / ' + MAX_CHARACTERS.toLocaleString() + ' characters';
   $('char-count').classList.toggle('at-limit', state.input.length >= MAX_CHARACTERS);
-  modelButton.disabled = state.model === 'loading' || state.model === 'ready' || state.gpu !== 'available';
+  modelButton.disabled = locked || state.model === 'ready' || !canRunEngine();
   modelButton.textContent = state.model === 'loading' ? 'Preparing…' : state.model === 'ready' ? 'Model ready ✓' : state.model === 'failed' ? 'Try again ↗' : 'Prepare model ↗';
   const labels = { idle: 'Not loaded', loading: 'Preparing', ready: 'Ready to translate', failed: 'Needs attention' };
   $('model-state').textContent = labels[state.model];
   $('model-state').dataset.state = state.model;
+  for (const mode of Object.keys(MODES)) {
+    const button = $('mode-' + mode);
+    button.setAttribute('aria-pressed', String(state.mode === mode));
+    button.disabled = locked;
+  }
   if (same) setInlineMessage('Choose two different languages to translate.', 'info');
   else if ($('inline-message').textContent === 'Choose two different languages to translate.') setInlineMessage('');
 }
+function switchMode(next) {
+  if (!MODES[next] || next === state.mode || state.translating || state.model === 'loading') return;
+  savedSessions[state.mode] = { model: state.model, engine: state.engine, downloaded: state.downloaded };
+  state.mode = next;
+  const saved = savedSessions[next];
+  state.model = saved.model;
+  state.engine = saved.engine;
+  state.downloaded = saved.downloaded;
+  const allows = (code) => supportedByMode(code, next);
+  populateLanguages(sourceSelect, state.source, allows);
+  populateLanguages(targetSelect, state.target, allows);
+  state.source = supportedByMode(state.source, next) ? state.source : 'en';
+  state.target = supportedByMode(state.target, next) ? state.target : 'de_DE';
+  if (state.source === state.target) state.target = state.source === 'de_DE' ? 'en' : 'de_DE';
+  sourceSelect.value = state.source;
+  targetSelect.value = state.target;
+  savePreference('source', state.source);
+  savePreference('target', state.target);
+  savePreference('mode', next);
+  invalidateResult();
+  setInlineMessage('');
+  state.pendingTranslate = false;
+  $('model-progress-wrap').hidden = state.model !== 'loading' && state.model !== 'ready';
+  $('model-progress-label').textContent = state.model === 'ready' ? 'Model ready' : 'Preparing…';
+  $('model-progress-percent').textContent = state.model === 'ready' ? '100%' : '0%';
+  $('model-progress-bar').style.width = state.model === 'ready' ? '100%' : '0%';
+  updateModelStatus();
+}
+$('mode-everyday').addEventListener('click', () => switchMode('everyday'));
+$('mode-premium').addEventListener('click', () => switchMode('premium'));
 
 function invalidateResult() {
   state.revision += 1;
   state.output = '';
   renderOutput();
-  $('output-meta').textContent = 'Powered by TranslateGemma 4B';
+  $('output-meta').textContent = 'Powered by ' + MODES[state.mode].name;
 }
 
 function updateInput(text) {
@@ -232,11 +279,12 @@ function progressUpdate(event) {
     state.downloaded.set(String(event.file || 'unknown'), event.loaded);
   }
   const downloaded = [...state.downloaded.values()].reduce((a, b) => a + b, 0);
-  const pct = Math.min(99, Math.floor((downloaded / MAX_MODEL_BYTES) * 100));
+  const spec = MODES[state.mode];
+  const pct = Math.min(99, Math.floor((downloaded / spec.approximateBytes) * 100));
   $('model-progress-bar').style.width = pct + '%';
   $('model-progress-percent').textContent = pct + '%';
   if (event.status === 'progress') {
-    $('model-progress-label').textContent = formatBytes(downloaded) + ' of approximately 3.1 GB';
+    $('model-progress-label').textContent = formatBytes(downloaded) + ' of approximately ' + spec.sizeLabel;
   } else if (event.status === 'initiate' || event.status === 'download') {
     $('model-progress-label').textContent = 'Downloading model files…';
   } else if (event.status === 'done' || event.status === 'ready') {
@@ -245,27 +293,27 @@ function progressUpdate(event) {
 }
 
 function updateModelStatus() {
+  const spec = MODES[state.mode];
+  $('model-name').textContent = spec.name;
+  $('model-version').textContent = spec.variant;
+  $('model-link').href = spec.modelUrl;
   const description = $('model-description');
   const footnote = $('model-footnote');
-  if (state.gpu === 'unavailable') {
-    description.textContent = 'This browser or device does not expose WebGPU. TranslateGemma 4B cannot run here with the current engine. The interface works, but translation needs a compatible device.';
-    footnote.textContent = 'Try an up-to-date GPU-enabled browser on supported hardware';
-  } else if (state.gpu === 'available') {
-    if (state.model === 'ready') {
-      description.textContent = 'The model is loaded in this browser session. Translation runs locally, without sending text to a server.';
-      footnote.textContent = 'Ready to translate · Model files may remain cached';
-    } else if (state.model === 'loading') {
-      description.textContent = 'Downloading and preparing a high-quality local translation engine. Please keep this tab open.';
-      footnote.textContent = 'First setup is large and may take time';
-    } else if (state.model === 'failed') {
-      description.textContent = 'Something prevented the model from loading. Check the message below, then retry if your device has sufficient resources.';
-      footnote.textContent = 'No translation data was uploaded';
-    } else {
-      description.textContent = 'Google’s specialized translation model runs locally. Its first download is approximately 3.1 GB, so you choose when to start.';
-      footnote.textContent = 'WebGPU detected · Requires substantial device memory';
-    }
+  if (!canRunEngine()) {
+    description.textContent = 'Premium requires WebGPU, which is not available in this browser. Switch to Everyday for CPU-based local translation.';
+    footnote.textContent = 'Everyday works without a GPU · nothing is uploaded for translation';
+  } else if (state.model === 'ready') {
+    description.textContent = spec.name + ' is loaded in this browser session. Translation runs locally; model files may remain cached.';
+    footnote.textContent = 'Ready to translate · ' + spec.disclaimer;
+  } else if (state.model === 'loading') {
+    description.textContent = 'Downloading and preparing ' + spec.name + '. Keep this tab open until loading finishes.';
+    footnote.textContent = 'Initial download: ' + spec.sizeLabel;
+  } else if (state.model === 'failed') {
+    description.textContent = 'The model could not be loaded on this device. Review the error and retry if sufficient storage and memory are available.';
+    footnote.textContent = 'No translation text was uploaded';
   } else {
-    footnote.textContent = 'Checking device compatibility…';
+    description.textContent = spec.introduction;
+    footnote.textContent = 'Optional download: ' + spec.sizeLabel + ' · ' + spec.disclaimer;
   }
   updateControls();
 }
@@ -278,19 +326,33 @@ async function checkWebGPU() {
     state.gpu = 'available';
   } catch {
     state.gpu = 'unavailable';
-    setInlineMessage('WebGPU is unavailable in this browser or device. The TranslateGemma 4B engine requires a compatible GPU-enabled browser.', 'error');
+    if (state.mode === 'premium') setInlineMessage('Premium requires a WebGPU-capable browser. Choose Everyday to translate using WebAssembly.', 'error');
   }
   updateModelStatus();
 }
 
 function askToLoad(translateAfter = false) {
-  if (state.model === 'loading' || state.model === 'ready' || state.gpu !== 'available') return;
+  if (state.model === 'loading' || state.model === 'ready' || !canRunEngine()) return;
   state.pendingTranslate = translateAfter;
+  const spec = MODES[state.mode];
+  const dialog = $('dialog-description');
+  dialog.replaceChildren(
+    document.createTextNode(spec.name + ' needs an initial download of about '),
+    Object.assign(document.createElement('strong'), { textContent: spec.sizeLabel }),
+    document.createTextNode('. Model files may be cached when storage permits. No translation text is uploaded.')
+  );
+  $('dialog-requirements').textContent = spec.requiresWebGPU
+    ? '⚠ Requires WebGPU and substantial device memory'
+    : '⚠ Requires available device storage and memory';
   if (navigator.connection?.saveData) {
-    $('dialog-description').textContent = 'Data Saver is on. This model is approximately 3.1 GB and requires a large download and free device memory. Start only when you are ready.';
+    dialog.append(document.createTextNode(' Data Saver is enabled; consider Wi-Fi before downloading.'));
   }
+  $('dialog-license').textContent = state.mode === 'everyday'
+    ? 'NLLB is CC BY-NC 4.0 (noncommercial); business use may require additional rights. Model files are downloaded from Hugging Face.'
+    : 'TranslateGemma follows the Google Gemma terms. Model files are downloaded from Hugging Face; the file host may see your IP address.';
   modelDialog.showModal();
 }
+
 modelButton.addEventListener('click', () => askToLoad(false));
 $('cancel-download').addEventListener('click', () => { modelDialog.close(); state.pendingTranslate = false; });
 modelDialog.addEventListener('cancel', () => { state.pendingTranslate = false; });
@@ -311,7 +373,9 @@ async function prepareModel() {
   updateModelStatus();
   try {
     // Dynamic import prevents a multi-GB model download on page visit.
-    const engine = await import('./translation.js');
+    const engine = state.mode === 'everyday'
+      ? await import('./everyday.js')
+      : await import('./translation.js');
     await engine.loadModel(progressUpdate);
     state.engine = engine;
     state.model = 'ready';
@@ -339,8 +403,8 @@ async function translate() {
     setInlineMessage('Choose two different languages to translate.', 'info');
     return;
   }
-  if (state.gpu !== 'available') {
-    setInlineMessage('A WebGPU-capable browser is needed for TranslateGemma 4B.', 'error');
+  if (!canRunEngine()) {
+    setInlineMessage('Premium requires WebGPU. Switch to Everyday to translate without it.', 'error');
     return;
   }
   if (state.model !== 'ready') { askToLoad(true); return; }
@@ -359,7 +423,9 @@ async function translate() {
     for (let i = 0; i < parts.length; i += 1) {
       if (revision !== state.revision) return;
       $('output-meta').textContent = 'Translating part ' + (i + 1) + ' of ' + parts.length + '…';
-      const result = await state.engine.translatePart(parts[i], state.source, state.target);
+      const sourceCode = state.mode === 'everyday' ? NLLB_CODES[state.source] : state.source;
+      const targetCode = state.mode === 'everyday' ? NLLB_CODES[state.target] : state.target;
+      const result = await state.engine.translatePart(parts[i], sourceCode, targetCode);
       if (revision !== state.revision) return;
       results.push(result);
       state.output = results.join('\n\n');
@@ -394,5 +460,5 @@ window.addEventListener('offline', () => {
 });
 
 renderOutput();
-updateControls();
+updateModelStatus();
 checkWebGPU();

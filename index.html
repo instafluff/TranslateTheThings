@@ -27,13 +27,25 @@
       <section class="intro" aria-labelledby="page-title">
         <div class="eyebrow"><span class="tiny-star">✦</span> LANGUAGE, WITHOUT BORDERS</div>
         <h1 id="page-title">Every word, <em>thoughtfully</em> translated.</h1>
-        <p>Natural, nuanced translations powered by TranslateGemma. Your words stay in your browser.</p>
+        <p>Thoughtful translations with a lighter everyday model, and extra depth when you need it. Your words stay in your browser.</p>
       </section>
 
       <section class="workspace" aria-label="Translation workspace">
         <div class="workspace-topline">
           <div class="workspace-heading"><span class="workspace-icon" aria-hidden="true">✳</span><span>Translation studio</span></div>
           <div class="local-indicator"><span class="local-indicator-dot"></span> On-device processing</div>
+        </div>
+        <div class="mode-picker" role="group" aria-label="Translation engine">
+          <button id="mode-everyday" class="mode-option" type="button" aria-pressed="true">
+            <span class="mode-symbol" aria-hidden="true">◈</span>
+            <span class="mode-option-copy"><strong>Everyday</strong><small>Smaller model · works without WebGPU</small></span>
+            <span class="mode-size">~0.9 GB</span>
+          </button>
+          <button id="mode-premium" class="mode-option" type="button" aria-pressed="false">
+            <span class="mode-symbol" aria-hidden="true">✦</span>
+            <span class="mode-option-copy"><strong>Premium</strong><small>TranslateGemma · nuanced translations</small></span>
+            <span class="mode-size">~3.1 GB</span>
+          </button>
         </div>
         <div class="panels">
           <section class="panel source-panel" aria-labelledby="source-title">
@@ -69,7 +81,7 @@
               <div class="empty-state"><div class="empty-state-icon" aria-hidden="true">✦</div><p>Your translation will appear here.</p><span>Choose languages and enter a little text to begin.</span></div>
             </div>
             <div class="editor-bottom">
-              <span id="output-meta" class="output-meta">Powered by TranslateGemma 4B</span>
+              <span id="output-meta" class="output-meta">Ready when you are</span>
               <div class="editor-actions"><button id="copy-button" class="text-action" type="button" disabled aria-label="Copy translated text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="11" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/></svg><span>Copy</span></button></div>
             </div>
           </section>
@@ -88,17 +100,17 @@
         <section class="model-card" aria-labelledby="model-title">
           <div class="model-emblem" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><rect x="4" y="4" width="16" height="16" rx="4"/><rect x="9" y="9" width="6" height="6" rx="1.5"/><path d="M9 1v3m6-3v3M9 20v3m6-3v3M1 9h3m-3 6h3m16-6h3m-3 6h3"/></svg></div>
           <div class="model-card-content">
-            <div class="model-card-top"><div><span class="card-kicker">YOUR TRANSLATION ENGINE</span><h2 id="model-title">TranslateGemma <span class="version-label">4B · Quality</span></h2></div><span id="model-state" class="engine-badge">Not loaded</span></div>
-            <p id="model-description">Google's specialized translation model runs locally. Its first download is approximately 3.1 GB, so you choose when to start.</p>
+            <div class="model-card-top"><div><span class="card-kicker">YOUR TRANSLATION ENGINE</span><h2 id="model-title"><span id="model-name">NLLB-200</span> <span id="model-version" class="version-label">600M · Everyday</span></h2></div><span id="model-state" class="engine-badge">Not loaded</span></div>
+            <p id="model-description">A smaller multilingual translation model runs locally using WebAssembly. Its first download is approximately 0.9 GB.</p>
             <div id="model-progress-wrap" class="model-progress" hidden><div class="progress-labels"><span id="model-progress-label">Preparing download…</span><span id="model-progress-percent">0%</span></div><div class="progress-track"><div id="model-progress-bar" class="progress-fill"></div></div></div>
-            <div class="model-card-actions"><button id="model-button" class="secondary-button" type="button">Prepare model <span aria-hidden="true">↗</span></button><span id="model-footnote" class="model-footnote">Requires WebGPU and substantial device memory</span></div>
+            <div class="model-card-actions"><button id="model-button" class="secondary-button" type="button">Prepare model <span aria-hidden="true">↗</span></button><span id="model-footnote" class="model-footnote">No WebGPU needed · substantial device storage required</span></div>
           </div>
         </section>
         <aside class="confidence-card">
           <div class="confidence-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z"/><path d="m8.5 12 2.3 2.4 4.7-4.8" stroke-linecap="round"/></svg></div>
           <h3>Your words stay yours.</h3>
           <p>No account, no ads, and no translation requests sent to a server. Just a local model and your text.</p>
-          <a href="https://huggingface.co/onnx-community/translategemma-text-4b-it-ONNX" target="_blank" rel="noopener noreferrer" class="plain-link">About the model <span aria-hidden="true">↗</span></a>
+          <a href="https://huggingface.co/Xenova/nllb-200-distilled-600M" id="model-link" target="_blank" rel="noopener noreferrer" class="plain-link">About the model <span aria-hidden="true">↗</span></a>
         </aside>
       </div>
 
@@ -112,16 +124,16 @@
       </section>
     </main>
 
-    <footer class="footer"><div><strong>TranslateTheThings</strong><span>Made for language, not data collection.</span></div><div><span>Built for the browser.</span><span class="footer-divider">·</span><a href="https://huggingface.co/google/translategemma-4b-it" target="_blank" rel="noopener noreferrer">Model &amp; license ↗</a></div></footer>
+    <footer class="footer"><div><strong>TranslateTheThings</strong><span>Made for language, not data collection.</span></div><div><span>Built for the browser.</span><span class="footer-divider">·</span><a href="https://huggingface.co/facebook/nllb-200-distilled-600M" target="_blank" rel="noopener noreferrer">NLLB license ↗</a><a href="https://ai.google.dev/gemma/terms" target="_blank" rel="noopener noreferrer">Gemma terms ↗</a></div></footer>
   </div>
 
   <dialog id="model-dialog" class="model-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
     <div class="dialog-icon" aria-hidden="true">✦</div>
     <h2 id="dialog-title">Bring great translation to your device.</h2>
-    <p id="dialog-description">TranslateGemma 4B needs an initial download of about <strong>3.1 GB</strong>. It will be stored in your browser's local cache when storage permits. No translation text is uploaded.</p>
-    <div class="dialog-notes"><div><span>✓</span> Inference stays on your device</div><div><span>✓</span> Reuse the model on future visits while cached</div><div><span>!</span> Requires WebGPU and sufficient free memory</div></div>
+    <p id="dialog-description"><span id="dialog-model-name">NLLB-200 600M</span> needs an initial download of about <strong id="dialog-model-size">0.9 GB</strong>. Model files may be cached in your browser when storage permits. No translation text is uploaded.</p>
+    <div class="dialog-notes"><div><span>✓</span> Inference stays on your device</div><div><span>✓</span> Reuse the model on future visits while cached</div><div id="dialog-requirements"><span>!</span> Requires sufficient free memory and storage</div></div>
     <div class="dialog-actions"><button id="cancel-download" class="secondary-button" type="button">Not now</button><button id="confirm-download" class="primary-button" type="button">Download model <span aria-hidden="true">→</span></button></div>
-    <p class="dialog-small">Model files come from Hugging Face's static hosting. Your IP address may be visible to the file host during download.</p>
+    <p id="dialog-license" class="dialog-small">Everyday uses NLLB under CC BY-NC 4.0. Its noncommercial terms may restrict business uses. Model downloads are static files from Hugging Face.</p>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>
