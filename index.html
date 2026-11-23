@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f8fb" />
+  <meta name="description" content="Thoughtful translations, made privately on your device with TranslateGemma." />
+  <meta name="referrer" content="no-referrer" />
+  <title>TranslateTheThings — words that feel right</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="TranslateTheThings home">
+        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 44 44" fill="none"><rect x="1" y="1" width="42" height="42" rx="14" fill="#6858D7"/><path d="M13 15h18M22 11v5M17 20c2 6 7 9 14 11M28 19c-2 6-6 10-12 12" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg></span>
+        <span class="brand-name">Translate<span>TheThings</span></span>
+      </a>
+      <div class="header-right">
+        <span class="privacy-pill"><span class="status-dot"></span><span>Private by design</span></span>
+        <button id="theme-toggle" class="icon-button theme-button" type="button" aria-label="Switch to dark mode" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 15.5A8 8 0 0 1 8.5 5 8 8 0 1 0 19 15.5Z"/></svg></button>
+      </div>
+    </header>
+    <main class="main">
+      <section class="intro" aria-labelledby="page-title">
+        <div class="eyebrow"><span class="tiny-star">✦</span> LANGUAGE, WITHOUT BORDERS</div>
+        <h1 id="page-title">Every word, <em>thoughtfully</em> translated.</h1>
+        <p>Natural, nuanced translations powered by TranslateGemma. Your words stay in your browser.</p>
+      </section>
+
+      <section class="workspace" aria-label="Translation workspace">
+        <div class="workspace-topline">
+          <div class="workspace-heading"><span class="workspace-icon" aria-hidden="true">✳</span><span>Translation studio</span></div>
+          <div class="local-indicator"><span class="local-indicator-dot"></span> On-device processing</div>
+        </div>
+        <div class="panels">
+          <section class="panel source-panel" aria-labelledby="source-title">
+            <div class="panel-toolbar">
+              <div class="language-input-wrap">
+                <span class="overline" id="source-title">FROM</span>
+                <div class="select-wrap"><select id="source-language" aria-label="Source language"></select><span aria-hidden="true" class="select-chevron">⌄</span></div>
+              </div>
+              <div class="panel-side-text">Original</div>
+            </div>
+            <label for="source-text" class="sr-only">Text to translate</label>
+            <textarea id="source-text" class="source-text" placeholder="Type or paste the text you'd like to translate…" maxlength="4000" spellcheck="true"></textarea>
+            <div class="editor-bottom">
+              <span id="char-count" class="char-count">0 / 4,000 characters</span>
+              <div class="editor-actions">
+                <button id="paste-button" class="text-action" type="button" title="Paste from clipboard" aria-label="Paste from clipboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="4" width="12" height="17" rx="2"/><path d="M16 4V3a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v1M5 8H4v12a2 2 0 0 0 2 2h9"/></svg><span>Paste</span></button>
+                <button id="clear-button" class="icon-button subtle-button" type="button" title="Clear source text" aria-label="Clear source text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+              </div>
+            </div>
+          </section>
+
+          <div class="swap-slot"><button id="swap-button" type="button" class="swap-button" title="Swap languages" aria-label="Swap source and target languages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16m-5-5 5 5-5 5M20 16H4m5-5-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+
+          <section class="panel result-panel" aria-labelledby="target-title">
+            <div class="panel-toolbar">
+              <div class="language-input-wrap">
+                <span class="overline" id="target-title">TO</span>
+                <div class="select-wrap"><select id="target-language" aria-label="Target language"></select><span aria-hidden="true" class="select-chevron">⌄</span></div>
+              </div>
+              <span class="target-badge">TRANSLATION</span>
+            </div>
+            <div id="translation-output" class="translation-output is-empty" role="status" aria-live="polite" aria-atomic="true">
+              <div class="empty-state"><div class="empty-state-icon" aria-hidden="true">✦</div><p>Your translation will appear here.</p><span>Choose languages and enter a little text to begin.</span></div>
+            </div>
+            <div class="editor-bottom">
+              <span id="output-meta" class="output-meta">Powered by TranslateGemma 4B</span>
+              <div class="editor-actions"><button id="copy-button" class="text-action" type="button" disabled aria-label="Copy translated text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="11" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/></svg><span>Copy</span></button></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="workspace-footer">
+          <div class="workspace-tip"><span aria-hidden="true">⌘</span> <span>Ctrl / ⌘ + Enter to translate</span></div>
+          <div class="translate-actions">
+            <button id="translate-button" class="primary-button" type="button" disabled><span class="button-star" aria-hidden="true">✦</span><span id="translate-button-label">Translate text</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+        <div id="inline-message" class="inline-message" role="status" aria-live="polite" hidden></div>
+      </section>
+
+      <div class="below-grid">
+        <section class="model-card" aria-labelledby="model-title">
+          <div class="model-emblem" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><rect x="4" y="4" width="16" height="16" rx="4"/><rect x="9" y="9" width="6" height="6" rx="1.5"/><path d="M9 1v3m6-3v3M9 20v3m6-3v3M1 9h3m-3 6h3m16-6h3m-3 6h3"/></svg></div>
+          <div class="model-card-content">
+            <div class="model-card-top"><div><span class="card-kicker">YOUR TRANSLATION ENGINE</span><h2 id="model-title">TranslateGemma <span class="version-label">4B · Quality</span></h2></div><span id="model-state" class="engine-badge">Not loaded</span></div>
+            <p id="model-description">Google's specialized translation model runs locally. Its first download is approximately 3.1 GB, so you choose when to start.</p>
+            <div id="model-progress-wrap" class="model-progress" hidden><div class="progress-labels"><span id="model-progress-label">Preparing download…</span><span id="model-progress-percent">0%</span></div><div class="progress-track"><div id="model-progress-bar" class="progress-fill"></div></div></div>
+            <div class="model-card-actions"><button id="model-button" class="secondary-button" type="button">Prepare model <span aria-hidden="true">↗</span></button><span id="model-footnote" class="model-footnote">Requires WebGPU and substantial device memory</span></div>
+          </div>
+        </section>
+        <aside class="confidence-card">
+          <div class="confidence-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z"/><path d="m8.5 12 2.3 2.4 4.7-4.8" stroke-linecap="round"/></svg></div>
+          <h3>Your words stay yours.</h3>
+          <p>No account, no ads, and no translation requests sent to a server. Just a local model and your text.</p>
+          <a href="https://huggingface.co/onnx-community/translategemma-text-4b-it-ONNX" target="_blank" rel="noopener noreferrer" class="plain-link">About the model <span aria-hidden="true">↗</span></a>
+        </aside>
+      </div>
+
+      <section class="examples" aria-label="Try an example">
+        <div class="example-header"><span>NEED SOME INSPIRATION?</span><span class="example-hint">Try a sample</span></div>
+        <div class="example-list">
+          <button class="example-chip" data-example="business" type="button"><span>✉</span> Business email</button>
+          <button class="example-chip" data-example="product" type="button"><span>◈</span> Product description</button>
+          <button class="example-chip" data-example="travel" type="button"><span>◇</span> Travel message</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer"><div><strong>TranslateTheThings</strong><span>Made for language, not data collection.</span></div><div><span>Built for the browser.</span><span class="footer-divider">·</span><a href="https://huggingface.co/google/translategemma-4b-it" target="_blank" rel="noopener noreferrer">Model &amp; license ↗</a></div></footer>
+  </div>
+
+  <dialog id="model-dialog" class="model-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+    <div class="dialog-icon" aria-hidden="true">✦</div>
+    <h2 id="dialog-title">Bring great translation to your device.</h2>
+    <p id="dialog-description">TranslateGemma 4B needs an initial download of about <strong>3.1 GB</strong>. It will be stored in your browser's local cache when storage permits. No translation text is uploaded.</p>
+    <div class="dialog-notes"><div><span>✓</span> Inference stays on your device</div><div><span>✓</span> Reuse the model on future visits while cached</div><div><span>!</span> Requires WebGPU and sufficient free memory</div></div>
+    <div class="dialog-actions"><button id="cancel-download" class="secondary-button" type="button">Not now</button><button id="confirm-download" class="primary-button" type="button">Download model <span aria-hidden="true">→</span></button></div>
+    <p class="dialog-small">Model files come from Hugging Face's static hosting. Your IP address may be visible to the file host during download.</p>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
