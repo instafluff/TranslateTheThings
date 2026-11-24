@@ -1,27 +1,23 @@
-// Manual build helper. Lists the generated static assets for offline shell caching.
-// Nothing is deployed automatically: upload dist/ yourself.
 import { createHash } from 'node:crypto';
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { cp, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const root = path.resolve('dist');
-async function collect(dir, relative = '') {
-  const entries = await readdir(dir, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const name = path.posix.join(relative, entry.name);
-    if (entry.isDirectory()) files.push(...await collect(path.join(dir, entry.name), name));
-    else if (entry.isFile()) files.push(name);
+const shell = ['index.html', 'LICENSE.txt', 'sw.js', 'src/styles.css',
+  ...(await readdir('public')).sort().map(name => `public/${name}`)];
+for (const file of shell) await cp(file, path.join('dist', file));
+
+const bundles = (await readdir('dist/assets')).sort();
+const files = [...shell, ...bundles.map(name => `assets/${name}`)];
+const hash = createHash('sha256');
+for (const file of files) hash.update(file).update(await readFile(path.join('dist', file)));
+const version = hash.digest('hex').slice(0, 12);
+await writeFile('dist/assets/precache.js',
+  `const CACHE = 'ttt-shell-${version}';\nconst FILES = ${JSON.stringify(files)};\n`);
+
+// Mirror only generated bundles to the Pages root; never use the repo as Vite's outDir.
+await cp('dist/assets', 'assets', { recursive: true });
+for (const entry of await readdir('assets', { withFileTypes: true })) {
+  if (entry.isFile() && entry.name !== 'precache.js' && !bundles.includes(entry.name)) {
+    await unlink(path.join('assets', entry.name));
   }
-  return files;
 }
-const assets = (await collect(root)).filter((name) =>
-  name !== 'index.html' && name !== 'sw.js' && name !== 'precache.json'
-).sort();
-await writeFile(path.join(root, 'precache.json'), JSON.stringify(assets.map((name) => './' + name), null, 2) + '\n');
-const version = createHash('sha256').update(assets.join('\n')).digest('hex').slice(0, 12);
-const worker = path.join(root, 'sw.js');
-const original = await readFile(worker, 'utf8');
-if (!original.includes('__VERSION__')) throw new Error('Expected service worker version placeholder');
-await writeFile(worker, original.replaceAll('__VERSION__', version));
-console.log('Static app ready in dist/: ' + assets.length + ' assets precached. No deployment performed.');

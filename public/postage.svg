@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 265 148" fill="none">
+  <defs>
+    <pattern id="holes-x" width="12" height="8" patternUnits="userSpaceOnUse"><circle cx="6" cy="0" r="3" fill="black"/></pattern>
+    <pattern id="holes-y" width="8" height="12" patternUnits="userSpaceOnUse"><circle cx="0" cy="6" r="3" fill="black"/></pattern>
+    <mask id="edge"><path fill="white" d="M0 0h96v120H0z"/><path fill="url(#holes-x)" d="M0 0h96v4H0zM0 116h96v4H0z"/><path fill="url(#holes-y)" d="M0 0h4v120H0zM92 0h4v120h-4z"/></mask>
+    <pattern id="grain" width="3" height="3" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".46" fill="#f5eddb"/></pattern>
+    <path id="arc" d="M-23 2a23 23 0 0 1 46 0"/>
+    <path id="wave" d="M-12 0q15-5 30 0t30 0 30 0 30 0"/>
+    <clipPath id="globe"><circle r="27"/></clipPath>
+  </defs>
+  <g transform="translate(157 6) rotate(10 48 60)" mask="url(#edge)">
+    <path fill="#254ba9" d="M0 0h96v120H0z"/>
+    <path fill="url(#grain)" opacity=".35" d="M0 0h96v120H0z"/>
+    <g stroke="#fff5db">
+      <path d="M8 8h80v104H8z" stroke-width="1.2"/><path d="M11 11h74v98H11z" opacity=".65" stroke-width=".65"/>
+      <path d="M17 89h62M17 32h62" stroke-width=".8"/>
+    </g>
+    <g fill="#fff5db" text-anchor="middle" font-family="monospace">
+      <text x="48" y="25" font-size="10" font-weight="bold" letter-spacing="1.8">PAR AVION</text>
+      <text x="48" y="101" font-size="9" letter-spacing="1.4">AIR MAIL</text>
+    </g>
+    <g transform="translate(48 61) rotate(-19)" clip-path="url(#globe)">
+      <circle r="27" fill="#eef0dc"/>
+      <g fill="#4766a8"><path d="m-32-15 15-9 10 3 1 5-6 5-1 8-4 2-6-6-5 2zm14 16 6 1 9 8-5 9-4 7-4-5 1-10zM5-26l8 3 5 1 11 8-5 8-6 1-1 5-6-3-1-7-6 1-5-3 4-4-2-3zM1-4l9-1 5 7-6 13-5-1-4-9zm18 18 7-3 5 8-10 4z"/></g>
+      <g stroke="#254ba9" stroke-width=".75" opacity=".8"><circle r="26.7"/><ellipse rx="13" ry="27"/><ellipse rx="23" ry="27"/><path d="M0-27v54M-29 0h58M-24-13q24 6 48 0M-24 13q24-6 48 0"/></g>
+    </g>
+    <g fill="#fff5db"><path d="m17 54 1.2 2.8 2.8 1.2-2.8 1.2L17 62l-1.2-2.8-2.8-1.2 2.8-1.2zM78 68l1 2.2 2.2 1L79 72l-1 2.2-1-2.2-2.2-.8 2.2-1z"/></g>
+  </g>
+  <g transform="translate(105 88) rotate(-9)" stroke="#686d75" opacity=".82">
+    <circle r="33" stroke-width="1.6"/><circle r="29.5" stroke-width=".8"/><path d="M-20 8h40M-19-5h38" stroke-width="1"/>
+    <g font-family="monospace" fill="#565d69" stroke="none" text-anchor="middle"><text font-size="7.5" letter-spacing="1.2"><textPath href="#arc" startOffset="50%">LOCAL POST</textPath></text><text y="5" font-size="9.5" font-weight="bold" letter-spacing="1.1">NO. 01</text><text y="19" font-size="7.5" letter-spacing="2">TTT</text></g>
+  </g>
+  <g transform="translate(144 81) rotate(-8)" stroke="#656972" opacity=".8" stroke-width="1.5"><use href="#wave"/><use href="#wave" y="6"/><use href="#wave" y="12"/><use href="#wave" y="18"/></g>
+</svg>

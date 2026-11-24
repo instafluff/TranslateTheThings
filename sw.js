@@ -1,13 +1,9 @@
-// Cache the static app shell. Model file caching is managed by Transformers.js.
-// Works with manual static deployments and relative asset URLs.
-const CACHE = 'ttt-shell-__VERSION__';
+// Generated alongside the bundles; changes to this import also update the worker.
+importScripts('./assets/precache.js');
 const ROOT = new URL('./', self.registration.scope);
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
-    const manifest = await fetch(new URL('precache.json', ROOT), { cache: 'no-store' });
-    if (!manifest.ok) throw new Error('App manifest unavailable');
-    const files = await manifest.json();
-    const urls = [ROOT.href, ...files.map((path) => new URL(path, ROOT).href)];
+    const urls = [ROOT.href, ...FILES.map((path) => new URL(path, ROOT).href)];
     const cache = await caches.open(CACHE);
     await cache.addAll(urls);
   })());
@@ -22,9 +18,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
-  if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then((response) => {
-      if (response.ok) caches.open(CACHE).then((cache) => cache.put(ROOT.href, response.clone()));
+  if (request.mode === 'navigate' && [ROOT.href, new URL('index.html', ROOT).href].includes(request.url.split('?')[0])) {
+    event.respondWith(fetch(request).then(async (response) => {
+      if (response.ok) await (await caches.open(CACHE)).put(ROOT.href, response.clone());
       return response;
     }).catch(() => caches.match(ROOT.href)));
     return;

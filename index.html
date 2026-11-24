@@ -3,138 +3,158 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#f7f8fb" />
-  <meta name="description" content="Thoughtful translations, made privately on your device with TranslateGemma." />
+  <meta name="theme-color" content="#f8f6f0" />
+  <meta name="description" content="A private translation desk. Choose your languages and translate right on your device." />
   <meta name="referrer" content="no-referrer" />
-  <title>TranslateTheThings — words that feel right</title>
-  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <script type="module" src="./src/main.js"></script>
+  <title>Translation desk — TranslateTheThings</title>
+  <link rel="icon" href="./public/icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./public/manifest.webmanifest" />
+  <link rel="stylesheet" href="./src/styles.css" />
+  <script type="module" src="./assets/app.js"></script>
 </head>
 <body>
-  <div class="site-shell">
-    <header class="site-header">
-      <a class="brand" href="./" aria-label="TranslateTheThings home">
-        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 44 44" fill="none"><rect x="1" y="1" width="42" height="42" rx="14" fill="#6858D7"/><path d="M13 15h18M22 11v5M17 20c2 6 7 9 14 11M28 19c-2 6-6 10-12 12" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg></span>
-        <span class="brand-name">Translate<span>TheThings</span></span>
-      </a>
-      <div class="header-right">
-        <span class="privacy-pill"><span class="status-dot"></span><span>Private by design</span></span>
-        <button id="theme-toggle" class="icon-button theme-button" type="button" aria-label="Switch to dark mode" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 15.5A8 8 0 0 1 8.5 5 8 8 0 1 0 19 15.5Z"/></svg></button>
+  <svg xmlns="http://www.w3.org/2000/svg" class="symbols" aria-hidden="true">
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3 5c3-1 6-.5 9 1.5C15 4.5 18 4 21 5v15c-3-1-6-.5-9 1-3-1.5-6-2-9-1zM12 6.5V21"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M3 8h17m-4-4 4 4-4 4M21 16H4m4-4-4 4 4 4"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-up-right" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></symbol>
+    <symbol id="i-paste" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1.5"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2M8 12h8m-8 4h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 2v3m6-3v3M9 19v3m6-3v3M2 9h3m-3 6h3m14-6h3m-3 6h3"/></symbol>
+    <symbol id="i-case" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12c6 3 12 3 18 0M10 14v2h4v-2"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 3h9l9 9a1.5 1.5 0 0 1 0 2l-7 7a1.5 1.5 0 0 1-2 0l-9-9z"/><circle cx="8" cy="8" r="1.3"/></symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24"><path d="m2 11 20-8-8 19-3-8zM11 14 22 3"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+  </svg>
+  <a class="skip-link" href="#desk">Skip to translator</a>
+  <header class="site-header">
+    <div class="frame header-inner">
+      <a class="brand" href="./" aria-label="TranslateTheThings home"><img src="./public/icon.svg" width="39" height="39" alt="" /><span>TranslateTheThings</span></a>
+      <nav class="header-nav" aria-label="Main navigation">
+        <a class="current-nav" href="#desk" aria-current="page">Translator</a>
+        <button type="button" class="guide-nav" data-open-guide aria-haspopup="dialog" title="Open model guide"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg><span>Models</span></button>
+        <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="frame main">
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow"><span class="airmark" aria-hidden="true"></span> Language tools <span class="slash">/</span> No. 01</p>
+        <h1 id="page-title">Translation desk<span>.</span></h1>
+        <p class="intro-copy">Choose your languages and translate privately, right in your browser.</p>
       </div>
-    </header>
-    <main class="main">
-      <section class="intro" aria-labelledby="page-title">
-        <div class="eyebrow"><span class="tiny-star">✦</span> LANGUAGE, WITHOUT BORDERS</div>
-        <h1 id="page-title">Every word, <em>thoughtfully</em> translated.</h1>
-        <p>Thoughtful translations with a lighter everyday model, and extra depth when you need it. Your words stay in your browser.</p>
-      </section>
+      <img class="postage" src="./public/postage.svg" width="265" height="148" alt="" />
+    </section>
 
-      <section class="workspace" aria-label="Translation workspace">
-        <div class="workspace-topline">
-          <div class="workspace-heading"><span class="workspace-icon" aria-hidden="true">✳</span><span>Translation studio</span></div>
-          <div class="local-indicator"><span class="local-indicator-dot"></span> On-device processing</div>
-        </div>
-        <div class="mode-picker" role="group" aria-label="Translation engine">
-          <button id="mode-everyday" class="mode-option" type="button" aria-pressed="true">
-            <span class="mode-symbol" aria-hidden="true">◈</span>
-            <span class="mode-option-copy"><strong>Everyday</strong><small>Smaller model · works without WebGPU</small></span>
-            <span class="mode-size">~0.9 GB</span>
-          </button>
-          <button id="mode-premium" class="mode-option" type="button" aria-pressed="false">
-            <span class="mode-symbol" aria-hidden="true">✦</span>
-            <span class="mode-option-copy"><strong>Premium</strong><small>TranslateGemma · nuanced translations</small></span>
-            <span class="mode-size">~3.1 GB</span>
-          </button>
-        </div>
-        <div class="panels">
-          <section class="panel source-panel" aria-labelledby="source-title">
-            <div class="panel-toolbar">
-              <div class="language-input-wrap">
-                <span class="overline" id="source-title">FROM</span>
-                <div class="select-wrap"><select id="source-language" aria-label="Source language"></select><span aria-hidden="true" class="select-chevron">⌄</span></div>
-              </div>
-              <div class="panel-side-text">Original</div>
-            </div>
-            <label for="source-text" class="sr-only">Text to translate</label>
-            <textarea id="source-text" class="source-text" placeholder="Type or paste the text you'd like to translate…" maxlength="4000" spellcheck="true"></textarea>
-            <div class="editor-bottom">
-              <span id="char-count" class="char-count">0 / 4,000 characters</span>
-              <div class="editor-actions">
-                <button id="paste-button" class="text-action" type="button" title="Paste from clipboard" aria-label="Paste from clipboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="4" width="12" height="17" rx="2"/><path d="M16 4V3a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v1M5 8H4v12a2 2 0 0 0 2 2h9"/></svg><span>Paste</span></button>
-                <button id="clear-button" class="icon-button subtle-button" type="button" title="Clear source text" aria-label="Clear source text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
-              </div>
-            </div>
-          </section>
-
-          <div class="swap-slot"><button id="swap-button" type="button" class="swap-button" title="Swap languages" aria-label="Swap source and target languages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16m-5-5 5 5-5 5M20 16H4m5-5-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-
-          <section class="panel result-panel" aria-labelledby="target-title">
-            <div class="panel-toolbar">
-              <div class="language-input-wrap">
-                <span class="overline" id="target-title">TO</span>
-                <div class="select-wrap"><select id="target-language" aria-label="Target language"></select><span aria-hidden="true" class="select-chevron">⌄</span></div>
-              </div>
-              <span class="target-badge">TRANSLATION</span>
-            </div>
-            <div id="translation-output" class="translation-output is-empty" role="status" aria-live="polite" aria-atomic="true">
-              <div class="empty-state"><div class="empty-state-icon" aria-hidden="true">✦</div><p>Your translation will appear here.</p><span>Choose languages and enter a little text to begin.</span></div>
-            </div>
-            <div class="editor-bottom">
-              <span id="output-meta" class="output-meta">Ready when you are</span>
-              <div class="editor-actions"><button id="copy-button" class="text-action" type="button" disabled aria-label="Copy translated text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="11" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/></svg><span>Copy</span></button></div>
-            </div>
-          </section>
-        </div>
-
-        <div class="workspace-footer">
-          <div class="workspace-tip"><span aria-hidden="true">⌘</span> <span>Ctrl / ⌘ + Enter to translate</span></div>
-          <div class="translate-actions">
-            <button id="translate-button" class="primary-button" type="button" disabled><span class="button-star" aria-hidden="true">✦</span><span id="translate-button-label">Translate text</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          </div>
-        </div>
-        <div id="inline-message" class="inline-message" role="status" aria-live="polite" hidden></div>
-      </section>
-
-      <div class="below-grid">
-        <section class="model-card" aria-labelledby="model-title">
-          <div class="model-emblem" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><rect x="4" y="4" width="16" height="16" rx="4"/><rect x="9" y="9" width="6" height="6" rx="1.5"/><path d="M9 1v3m6-3v3M9 20v3m6-3v3M1 9h3m-3 6h3m16-6h3m-3 6h3"/></svg></div>
-          <div class="model-card-content">
-            <div class="model-card-top"><div><span class="card-kicker">YOUR TRANSLATION ENGINE</span><h2 id="model-title"><span id="model-name">NLLB-200</span> <span id="model-version" class="version-label">600M · Everyday</span></h2></div><span id="model-state" class="engine-badge">Not loaded</span></div>
-            <p id="model-description">A smaller multilingual translation model runs locally using WebAssembly. Its first download is approximately 0.9 GB.</p>
-            <div id="model-progress-wrap" class="model-progress" hidden><div class="progress-labels"><span id="model-progress-label">Preparing download…</span><span id="model-progress-percent">0%</span></div><div class="progress-track"><div id="model-progress-bar" class="progress-fill"></div></div></div>
-            <div class="model-card-actions"><button id="model-button" class="secondary-button" type="button">Prepare model <span aria-hidden="true">↗</span></button><span id="model-footnote" class="model-footnote">No WebGPU needed · substantial device storage required</span></div>
-          </div>
-        </section>
-        <aside class="confidence-card">
-          <div class="confidence-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z"/><path d="m8.5 12 2.3 2.4 4.7-4.8" stroke-linecap="round"/></svg></div>
-          <h3>Your words stay yours.</h3>
-          <p>No account, no ads, and no translation requests sent to a server. Just a local model and your text.</p>
-          <a href="https://huggingface.co/Xenova/nllb-200-distilled-600M" id="model-link" target="_blank" rel="noopener noreferrer" class="plain-link">About the model <span aria-hidden="true">↗</span></a>
-        </aside>
+    <section class="workspace" id="desk" tabindex="-1" aria-label="Translation workspace">
+      <div class="language-bar">
+        <label class="language-field">
+          <span class="language-code" id="source-code" aria-hidden="true">EN</span>
+          <span class="language-copy"><span class="language-caption">From</span><span class="language-value" aria-hidden="true"><span id="source-name">English</span><svg class="icon"><use href="#i-down"/></svg></span></span>
+          <select id="source-language" aria-label="Source language"></select>
+        </label>
+        <button id="swap-button" type="button" class="swap-button" title="Swap languages" aria-label="Swap source and target languages"><svg class="icon" aria-hidden="true"><use href="#i-swap"/></svg></button>
+        <label class="language-field">
+          <span class="language-code" id="target-code" aria-hidden="true">DE</span>
+          <span class="language-copy"><span class="language-caption">To</span><span class="language-value" aria-hidden="true"><span id="target-name">German</span><svg class="icon"><use href="#i-down"/></svg></span></span>
+          <select id="target-language" aria-label="Target language"></select>
+        </label>
       </div>
 
-      <section class="examples" aria-label="Try an example">
-        <div class="example-header"><span>NEED SOME INSPIRATION?</span><span class="example-hint">Try a sample</span></div>
-        <div class="example-list">
-          <button class="example-chip" data-example="business" type="button"><span>✉</span> Business email</button>
-          <button class="example-chip" data-example="product" type="button"><span>◈</span> Product description</button>
-          <button class="example-chip" data-example="travel" type="button"><span>◇</span> Travel message</button>
+      <div class="panel source-panel">
+        <label for="source-text" class="panel-label"><span aria-hidden="true">01 /</span> Original text</label>
+        <textarea id="source-text" class="source-text" placeholder="Type or paste your text…" maxlength="4000" spellcheck="true" dir="auto" aria-describedby="char-count"></textarea>
+        <div class="panel-bottom">
+          <div class="editor-actions">
+            <button id="paste-button" class="text-action" type="button" aria-label="Paste from clipboard"><svg class="icon" aria-hidden="true"><use href="#i-paste"/></svg>Paste</button>
+            <button id="clear-button" class="text-action" type="button" aria-label="Clear source text" hidden><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg>Clear</button>
+          </div>
+          <span id="char-count" class="char-count">0 / 4,000</span>
+        </div>
+      </div>
+
+      <div class="desk-actions">
+        <button type="button" class="engine-switch" data-open-guide aria-haspopup="dialog" title="Choose a translation model">
+          <span class="engine-icon"><svg class="icon" aria-hidden="true"><use href="#i-chip"/></svg></span>
+          <span><span class="engine-name"><span id="active-mode">Everyday model</span><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg></span><span id="engine-summary" class="engine-summary">First download · ~0.9 GB</span></span>
+        </button>
+        <div class="translate-actions">
+          <kbd id="shortcut" aria-hidden="true">Ctrl ↵</kbd>
+          <button id="translate-button" class="primary-button" type="button" aria-keyshortcuts="Control+Enter Meta+Enter" disabled><span id="translate-button-label">Translate</span><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+      <div id="model-progress-wrap" class="model-progress" hidden>
+        <label for="model-progress-bar"><span id="model-progress-label">Preparing download…</span><span id="model-progress-percent">0%</span></label>
+        <progress id="model-progress-bar" max="100" value="0"></progress>
+      </div>
+      <div id="inline-message" class="inline-message" role="status" hidden></div>
+
+      <section class="panel result-panel" aria-labelledby="result-label">
+        <h2 id="result-label" class="panel-label"><span aria-hidden="true">02 /</span> Translation</h2>
+        <div id="translation-output" class="translation-output is-empty" role="status" aria-live="polite" aria-atomic="true">Your translation appears here…</div>
+        <div class="panel-bottom">
+          <button id="copy-button" class="text-action" type="button" disabled aria-label="Copy translated text"><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg>Copy</button>
+          <span id="output-meta" class="output-meta" role="status"></span>
         </div>
       </section>
-    </main>
+    </section>
 
-    <footer class="footer"><div><strong>TranslateTheThings</strong><span>Made for language, not data collection.</span></div><div><span>Built for the browser.</span><span class="footer-divider">·</span><a href="https://huggingface.co/facebook/nllb-200-distilled-600M" target="_blank" rel="noopener noreferrer">NLLB license ↗</a><a href="https://ai.google.dev/gemma/terms" target="_blank" rel="noopener noreferrer">Gemma terms ↗</a></div></footer>
-  </div>
+    <section class="phrasebook" aria-labelledby="phrasebook-title">
+      <div class="phrasebook-heading"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg><h2 id="phrasebook-title">Phrasebook</h2><span class="heading-rule"></span><span class="phrasebook-hint">Try a sample</span></div>
+      <div class="examples">
+        <button class="example travel" data-example="travel" type="button">
+          <span class="sample-icon"><svg class="icon" aria-hidden="true"><use href="#i-plane"/></svg></span>
+          <span class="sample-copy"><strong>Travel message</strong><span>Ukrainian → Polish</span></span>
+          <svg class="icon sample-arrow" aria-hidden="true"><use href="#i-up-right"/></svg>
+        </button>
+        <button class="example business" data-example="business" type="button">
+          <span class="sample-icon"><svg class="icon" aria-hidden="true"><use href="#i-case"/></svg></span>
+          <span class="sample-copy"><strong>Business email</strong><span>Czech → German</span></span>
+          <svg class="icon sample-arrow" aria-hidden="true"><use href="#i-up-right"/></svg>
+        </button>
+        <button class="example product" data-example="product" type="button">
+          <span class="sample-icon"><svg class="icon" aria-hidden="true"><use href="#i-tag"/></svg></span>
+          <span class="sample-copy"><strong>Product description</strong><span>English → French</span></span>
+          <svg class="icon sample-arrow" aria-hidden="true"><use href="#i-up-right"/></svg>
+        </button>
+      </div>
+    </section>
+  </main>
 
-  <dialog id="model-dialog" class="model-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
-    <div class="dialog-icon" aria-hidden="true">✦</div>
-    <h2 id="dialog-title">Bring great translation to your device.</h2>
-    <p id="dialog-description"><span id="dialog-model-name">NLLB-200 600M</span> needs an initial download of about <strong id="dialog-model-size">0.9 GB</strong>. Model files may be cached in your browser when storage permits. No translation text is uploaded.</p>
-    <div class="dialog-notes"><div><span>✓</span> Inference stays on your device</div><div><span>✓</span> Reuse the model on future visits while cached</div><div id="dialog-requirements"><span>!</span> Requires sufficient free memory and storage</div></div>
-    <div class="dialog-actions"><button id="cancel-download" class="secondary-button" type="button">Not now</button><button id="confirm-download" class="primary-button" type="button">Download model <span aria-hidden="true">→</span></button></div>
-    <p id="dialog-license" class="dialog-small">Everyday uses NLLB under CC BY-NC 4.0. Its noncommercial terms may restrict business uses. Model downloads are static files from Hugging Face.</p>
+  <footer class="frame footer">
+    <span>TranslateTheThings by <a class="author-link" href="https://www.instafluff.tv/" target="_blank" rel="noopener noreferrer">Instafluff</a></span>
+    <span class="privacy-note"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg>No account. No text uploads.</span>
+    <div><a href="./LICENSE.txt" target="_blank" rel="noopener noreferrer">Code license ↗</a><a href="https://huggingface.co/facebook/nllb-200-distilled-600M" target="_blank" rel="noopener noreferrer">NLLB license ↗</a><a href="https://ai.google.dev/gemma/terms" target="_blank" rel="noopener noreferrer">Gemma terms ↗</a></div>
+  </footer>
+
+  <dialog id="guide-dialog" aria-labelledby="guide-title">
+    <div class="dialog-heading"><p class="eyebrow"><span class="airmark" aria-hidden="true"></span> Desk reference</p><form method="dialog"><button class="icon-button" aria-label="Close model guide" autofocus><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></form></div>
+    <h2 id="guide-title">Model guide<span>.</span></h2>
+    <p>Choose the model that translates your text. Both run on your device, and neither downloads until you confirm.</p>
+    <div class="mode-picker" role="group" aria-label="Translation engine">
+      <button id="mode-everyday" class="mode-option" type="button" aria-pressed="true"><span class="mode-radio"></span><span><strong>Everyday</strong><small>No WebGPU needed</small></span><span class="mode-size">~0.9 GB</span></button>
+      <button id="mode-premium" class="mode-option" type="button" aria-pressed="false"><span class="mode-radio"></span><span><strong>Premium</strong><small>Requires WebGPU</small></span><span class="mode-size">~3.1 GB</span></button>
+    </div>
+    <div class="model-detail">
+      <div class="detail-heading"><h3><span id="model-name">NLLB-200</span> <span id="model-version">600M · Everyday</span></h3><span id="model-state">Not loaded</span></div>
+      <p id="model-description"></p>
+      <a id="model-link" class="model-link" href="https://huggingface.co/Xenova/nllb-200-distilled-600M" target="_blank" rel="noopener noreferrer">About this model ↗</a>
+    </div>
+    <div class="dialog-actions"><form method="dialog"><button class="secondary-button">Back to desk</button></form><button id="model-button" class="primary-button" type="button">Prepare model</button></div>
   </dialog>
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="model-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+    <p class="eyebrow"><span class="airmark" aria-hidden="true"></span> First-time setup</p>
+    <h2 id="dialog-title">Download the model<span>?</span></h2>
+    <p id="dialog-description"></p>
+    <p class="requirements" id="dialog-requirements"></p>
+    <p id="dialog-license" class="dialog-small"></p>
+    <div class="dialog-actions"><button id="cancel-download" class="secondary-button" type="button" autofocus>Not now</button><button id="confirm-download" class="primary-button" type="button">Download model <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+  </dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
 </body>
 </html>

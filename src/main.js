@@ -1,4 +1,3 @@
-import './styles.css';
 import { SUPPORTED_CODES, populateLanguages } from './languages.js';
 import { MODES, NLLB_CODES, supportedByMode } from './models.js';
 import { MAX_CHARACTERS, chunkText, formatBytes } from './text.js';
@@ -12,6 +11,7 @@ const translateButton = $('translate-button');
 const translateLabel = $('translate-button-label');
 const modelButton = $('model-button');
 const modelDialog = $('model-dialog');
+const guideDialog = $('guide-dialog');
 
 function readPreference(key, fallback) {
   try { return localStorage.getItem('ttt-' + key) || fallback; }
@@ -71,20 +71,20 @@ function setInlineMessage(message, kind = 'info') {
 }
 
 function renderOutput() {
-  outputElement.replaceChildren();
   outputElement.classList.toggle('is-empty', !state.output);
-  if (state.output) {
-    const paragraph = document.createElement('div');
-    paragraph.className = 'output-text';
-    paragraph.textContent = state.output;
-    outputElement.append(paragraph);
-  } else {
-    const empty = document.createElement('div');
-    empty.className = 'empty-state';
-    empty.innerHTML = '<div class="empty-state-icon" aria-hidden="true">✦</div><p>Your translation will appear here.</p><span>Choose languages and enter a little text to begin.</span>';
-    outputElement.append(empty);
-  }
+  outputElement.lang = state.output ? state.target.replace('_', '-') : 'en';
+  outputElement.dir = 'auto';
+  const content = state.output || 'Your translation appears here…';
+  if (outputElement.textContent !== content) outputElement.textContent = content;
   $('copy-button').disabled = !state.output;
+}
+
+function syncLanguageLabels() {
+  for (const [side, select] of [['source', sourceSelect], ['target', targetSelect]]) {
+    $(side + '-code').textContent = select.value.split('_')[0].toUpperCase();
+    $(side + '-name').textContent = select.selectedOptions[0].textContent;
+  }
+  sourceInput.lang = state.source.replace('_', '-');
 }
 
 function updateControls() {
@@ -92,12 +92,12 @@ function updateControls() {
   const same = state.source === state.target;
   const locked = state.translating || state.model === 'loading';
   translateButton.disabled = !hasText || same || locked || !canRunEngine();
-  translateLabel.textContent = state.translating ? 'Translating…' : 'Translate text';
-  translateButton.classList.toggle('is-busy', state.translating);
-  $('char-count').textContent = state.input.length.toLocaleString() + ' / ' + MAX_CHARACTERS.toLocaleString() + ' characters';
+  translateLabel.textContent = state.translating ? 'Translating…' : state.model === 'loading' ? 'Preparing…' : 'Translate';
+  $('char-count').textContent = state.input.length.toLocaleString() + ' / ' + MAX_CHARACTERS.toLocaleString();
   $('char-count').classList.toggle('at-limit', state.input.length >= MAX_CHARACTERS);
+  $('clear-button').hidden = !state.input;
   modelButton.disabled = locked || state.model === 'ready' || !canRunEngine();
-  modelButton.textContent = state.model === 'loading' ? 'Preparing…' : state.model === 'ready' ? 'Model ready ✓' : state.model === 'failed' ? 'Try again ↗' : 'Prepare model ↗';
+  modelButton.textContent = state.model === 'loading' ? 'Preparing…' : state.model === 'ready' ? 'Model ready' : state.model === 'failed' ? 'Try again' : 'Prepare model';
   const labels = { idle: 'Not loaded', loading: 'Preparing', ready: 'Ready to translate', failed: 'Needs attention' };
   $('model-state').textContent = labels[state.model];
   $('model-state').dataset.state = state.model;
@@ -131,10 +131,7 @@ function switchMode(next) {
   invalidateResult();
   setInlineMessage('');
   state.pendingTranslate = false;
-  $('model-progress-wrap').hidden = state.model !== 'loading' && state.model !== 'ready';
-  $('model-progress-label').textContent = state.model === 'ready' ? 'Model ready' : 'Preparing…';
-  $('model-progress-percent').textContent = state.model === 'ready' ? '100%' : '0%';
-  $('model-progress-bar').style.width = state.model === 'ready' ? '100%' : '0%';
+  syncLanguageLabels();
   updateModelStatus();
 }
 $('mode-everyday').addEventListener('click', () => switchMode('everyday'));
@@ -144,7 +141,7 @@ function invalidateResult() {
   state.revision += 1;
   state.output = '';
   renderOutput();
-  $('output-meta').textContent = 'Powered by ' + MODES[state.mode].name;
+  $('output-meta').textContent = '';
 }
 
 function updateInput(text) {
@@ -159,12 +156,14 @@ sourceInput.addEventListener('input', () => updateInput(sourceInput.value));
 sourceSelect.addEventListener('change', () => {
   state.source = sourceSelect.value;
   savePreference('source', state.source);
+  syncLanguageLabels();
   invalidateResult();
   updateControls();
 });
 targetSelect.addEventListener('change', () => {
   state.target = targetSelect.value;
   savePreference('target', state.target);
+  syncLanguageLabels();
   invalidateResult();
   updateControls();
 });
@@ -178,6 +177,7 @@ $('swap-button').addEventListener('click', () => {
   targetSelect.value = state.target;
   savePreference('source', state.source);
   savePreference('target', state.target);
+  syncLanguageLabels();
   // If a translation exists, use it as the new source; never label an unverified
   // reversal of the old input as a newly generated translation.
   updateInput(oldResult || state.input);
@@ -238,9 +238,10 @@ document.querySelectorAll('[data-example]').forEach((button) => {
     targetSelect.value = sample.target;
     savePreference('source', sample.source);
     savePreference('target', sample.target);
+    syncLanguageLabels();
     updateInput(sample.text);
     sourceInput.focus();
-    showToast('Example added. Ready when you are.');
+    showToast('Sample added to the editor.');
   });
 });
 
@@ -253,7 +254,7 @@ function setTheme(theme) {
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>'
     : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 15.5A8 8 0 0 1 8.5 5 8 8 0 1 0 19 15.5Z"/></svg>';
   const metaTheme = document.querySelector('meta[name="theme-color"]');
-  if (metaTheme) metaTheme.content = theme === 'dark' ? '#10121b' : '#f7f8fb';
+  if (metaTheme) metaTheme.content = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
 }
 const defaultTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 setTheme(readPreference('theme', defaultTheme) === 'dark' ? 'dark' : 'light');
@@ -281,7 +282,7 @@ function progressUpdate(event) {
   const downloaded = [...state.downloaded.values()].reduce((a, b) => a + b, 0);
   const spec = MODES[state.mode];
   const pct = Math.min(99, Math.floor((downloaded / spec.approximateBytes) * 100));
-  $('model-progress-bar').style.width = pct + '%';
+  $('model-progress-bar').value = pct;
   $('model-progress-percent').textContent = pct + '%';
   if (event.status === 'progress') {
     $('model-progress-label').textContent = formatBytes(downloaded) + ' of approximately ' + spec.sizeLabel;
@@ -297,23 +298,25 @@ function updateModelStatus() {
   $('model-name').textContent = spec.name;
   $('model-version').textContent = spec.variant;
   $('model-link').href = spec.modelUrl;
+  $('active-mode').textContent = state.mode === 'everyday' ? 'Everyday model' : 'Premium model';
+  $('model-progress-wrap').hidden = state.model !== 'loading';
   const description = $('model-description');
-  const footnote = $('model-footnote');
+  const summary = $('engine-summary');
   if (!canRunEngine()) {
-    description.textContent = 'Premium requires WebGPU, which is not available in this browser. Switch to Everyday for CPU-based local translation.';
-    footnote.textContent = 'Everyday works without a GPU · nothing is uploaded for translation';
+    description.textContent = state.gpu === 'checking' ? 'Checking whether this browser supports WebGPU.' : 'Premium requires WebGPU, which is not available in this browser. Choose Everyday to translate without it.';
+    summary.textContent = state.gpu === 'checking' ? 'Checking WebGPU…' : 'No WebGPU · choose Everyday';
   } else if (state.model === 'ready') {
     description.textContent = spec.name + ' is loaded in this browser session. Translation runs locally; model files may remain cached.';
-    footnote.textContent = 'Ready to translate · ' + spec.disclaimer;
+    summary.textContent = 'Ready on this device';
   } else if (state.model === 'loading') {
     description.textContent = 'Downloading and preparing ' + spec.name + '. Keep this tab open until loading finishes.';
-    footnote.textContent = 'Initial download: ' + spec.sizeLabel;
+    summary.textContent = 'Preparing · keep this tab open';
   } else if (state.model === 'failed') {
     description.textContent = 'The model could not be loaded on this device. Review the error and retry if sufficient storage and memory are available.';
-    footnote.textContent = 'No translation text was uploaded';
+    summary.textContent = 'Setup failed · try again';
   } else {
     description.textContent = spec.introduction;
-    footnote.textContent = 'Optional download: ' + spec.sizeLabel + ' · ' + spec.disclaimer;
+    summary.textContent = 'First download · ' + spec.sizeLabel;
   }
   updateControls();
 }
@@ -337,13 +340,13 @@ function askToLoad(translateAfter = false) {
   const spec = MODES[state.mode];
   const dialog = $('dialog-description');
   dialog.replaceChildren(
-    document.createTextNode(spec.name + ' needs an initial download of about '),
+    document.createTextNode(spec.name + ' needs a first download of '),
     Object.assign(document.createElement('strong'), { textContent: spec.sizeLabel }),
-    document.createTextNode('. Model files may be cached when storage permits. No translation text is uploaded.')
+    document.createTextNode('. Your browser can reuse the files while they’re cached. Your text stays on this device.')
   );
   $('dialog-requirements').textContent = spec.requiresWebGPU
-    ? '⚠ Requires WebGPU and substantial device memory'
-    : '⚠ Requires available device storage and memory';
+    ? 'Requires WebGPU, free storage, and substantial device memory.'
+    : 'Requires free storage and memory. No WebGPU needed.';
   if (navigator.connection?.saveData) {
     dialog.append(document.createTextNode(' Data Saver is enabled; consider Wi-Fi before downloading.'));
   }
@@ -354,10 +357,14 @@ function askToLoad(translateAfter = false) {
 }
 
 modelButton.addEventListener('click', () => askToLoad(false));
+document.querySelectorAll('[data-open-guide]').forEach((button) => {
+  button.addEventListener('click', () => guideDialog.showModal());
+});
 $('cancel-download').addEventListener('click', () => { modelDialog.close(); state.pendingTranslate = false; });
 modelDialog.addEventListener('cancel', () => { state.pendingTranslate = false; });
 $('confirm-download').addEventListener('click', async () => {
   modelDialog.close();
+  if (guideDialog.open) guideDialog.close();
   await prepareModel();
 });
 
@@ -365,10 +372,9 @@ async function prepareModel() {
   if (state.model === 'loading' || state.model === 'ready') return;
   state.model = 'loading';
   state.downloaded.clear();
-  $('model-progress-wrap').hidden = false;
   $('model-progress-label').textContent = 'Preparing model download…';
   $('model-progress-percent').textContent = '0%';
-  $('model-progress-bar').style.width = '0%';
+  $('model-progress-bar').value = 0;
   setInlineMessage('');
   updateModelStatus();
   try {
@@ -379,9 +385,6 @@ async function prepareModel() {
     await engine.loadModel(progressUpdate);
     state.engine = engine;
     state.model = 'ready';
-    $('model-progress-bar').style.width = '100%';
-    $('model-progress-percent').textContent = '100%';
-    $('model-progress-label').textContent = 'Model ready';
     updateModelStatus();
     showToast('Your translation model is ready.');
     if (state.pendingTranslate && state.input.trim()) {
@@ -391,7 +394,6 @@ async function prepareModel() {
   } catch (error) {
     state.model = 'failed';
     state.pendingTranslate = false;
-    $('model-progress-wrap').hidden = true;
     updateModelStatus();
     setInlineMessage(userFriendlyError(error), 'error');
   }
@@ -444,7 +446,17 @@ async function translate() {
 }
 translateButton.addEventListener('click', translate);
 document.addEventListener('keydown', (event) => {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && !modelDialog.open) {
+  if (event.key === 'Escape' && (modelDialog.open || guideDialog.open)) {
+    event.preventDefault();
+    if (modelDialog.open) {
+      state.pendingTranslate = false;
+      modelDialog.close();
+    } else {
+      guideDialog.close();
+    }
+    return;
+  }
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && !modelDialog.open && !guideDialog.open) {
     event.preventDefault();
     translate();
   }
@@ -459,6 +471,8 @@ window.addEventListener('offline', () => {
   if (state.model !== 'ready') showToast('You are offline. Loading uncached model files may fail.');
 });
 
+$('shortcut').textContent = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘ ↵' : 'Ctrl ↵';
+syncLanguageLabels();
 renderOutput();
 updateModelStatus();
 checkWebGPU();

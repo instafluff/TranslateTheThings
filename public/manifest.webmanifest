@@ -2,11 +2,11 @@
   "name": "TranslateTheThings",
   "short_name": "Translate",
   "description": "Private in-browser translation with everyday and premium local models",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "../",
+  "scope": "../",
   "display": "standalone",
-  "background_color": "#f7f8fb",
-  "theme_color": "#6858d7",
+  "background_color": "#f8f6f0",
+  "theme_color": "#f8f6f0",
   "icons": [
     {
       "src": "./icon.svg",
